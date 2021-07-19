@@ -6,6 +6,9 @@ const database = require("./database")
 // Initialization
 const Booky = express();
 
+// Configuration
+Booky.use(express.json());
+
 /* 
 Route          /
 Description    Get all Books
@@ -127,6 +130,101 @@ Methods        Get
 
 Booky.get("/publications", (req,res) =>{
     return res.json({ publications: database.publication});
+});
+
+/* 
+Route          /book/add
+Description    Add new book
+Access         Public
+Parameter      none
+Methods        Post
+*/
+Booky.post("/book/add", (req,res) => {
+    const {newBook} = req.body;
+    database.books.push(newBook);
+    return res.json({ books : database.books});
+});
+
+/* 
+Route          /author/add
+Description    Add new book
+Access         Public
+Parameter      none
+Methods        Post
+*/
+Booky.post("/author/add", (req,res) => {
+    const {newAuthor} = req.body;
+    database.author.push(newAuthor);
+    return res.json({ authors : database.books});
+});
+
+/* 
+Route          /book/update/title
+Description    Update book title
+Access         Public
+Parameter      isbn
+Methods        Put
+*/
+Booky.put("/book/update/title/:isbn" , (req,res) => {
+database.books.forEach((book) => {
+if(book.ISBN === req.params.isbn){
+    book.title = req.body.newBookTitle;
+    return;
+}
+});
+return res.json({books: database.books});
+});
+
+/* 
+Route          /book/update/author
+Description    Update/add new authors
+Access         Public
+Parameter      isbn
+Methods        Put
+*/
+
+Booky.put("/book/update/author/:isbn", (req,res) => {
+// Upaate Book database
+database.books.forEach((book) => {
+if(book.ISBN === req.params.isbn){
+return book.author.push(parseInt(req.params.authorId));
+}
+});
+// update authors database
+database.author.forEach((author) => {
+    if(author.id === parseInt(req.params.authorId))
+    return author.books.push(req.params.isbn);
+});
+return res.json({ books: database.books, author: database.author});
+});
+
+/* 
+Route          /publication/update/book
+Description    Update/Add Books to a publications
+Access         Public
+Parameter      isbn
+Methods        Put
+*/
+
+Booky.put("/publication/update/book/:isbn", (req,res) => {
+ // Upaate publication database
+database.publications.forEach((publication) => {
+    if(publication.id === req.body.pubId){
+    return publication.books.push(req.params.isbn);
+    }
+});
+   // Upaate Book database
+database.books.forEach((book) => {
+    if(book.ISBN === req.params.isbn){
+    book.publication = req.body.pubId;
+    return;
+    }
+    });    
+
+    return res.json({books: database.books,
+         publications: database.publications, 
+         message: "Successfully update publication",
+        });
 });
 
 Booky.listen(3000, () => console.log("Hey Server is Running!😎"));
